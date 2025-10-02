@@ -1,0 +1,17 @@
+{
+  "feature_order": [
+    "proteins_100g",
+    "carbohydrates_100g",
+    "sugars_100g",
+    "fat_100g",
+    "fiber_100g",
+    "salt_100g",
+    "sodium_100g",
+    "calcium_100g",
+    "iron_100g",
+    "potassium_100g",
+    "iodine_100g",
+    "energy_100g",
+    "sugar_carb_ratio"
+  ]
+}

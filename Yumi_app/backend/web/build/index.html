@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yumi - Votre Assistant Nutritionnel IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .api-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .endpoint-title {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .endpoint-url {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin: 5px 0;
+            display: inline-block;
+        }
+
+        .test-section {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .test-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin: 10px 0;
+        }
+
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .test-button:hover {
+            background: #5a6fd8;
+        }
+
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-running {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥗 Yumi</h1>
+            <p>Votre Assistant Nutritionnel IA</p>
+            <div class="status-indicator status-running">✅ Serveur en ligne</div>
+        </div>
+
+        <div class="card">
+            <div class="api-section">
+                <h2>🔍 Tester l'API - Scanner un produit</h2>
+                <p>Entrez un code-barres pour obtenir le score nutritionnel Yumi :</p>
+
+                <div class="test-section">
+                    <input type="text"
+                           id="barcodeInput"
+                           class="test-input"
+                           placeholder="Ex: 3017620425035 (Nutella)"
+                           value="3017620425035">
+                    <br>
+                    <button class="test-button" onclick="scanProduct()">🔍 Scanner le produit</button>
+                    <div id="scanResult" class="result" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="api-section">
+                <h2>📋 Endpoints API disponibles</h2>
+
+                <div class="endpoint">
+                    <div class="endpoint-title">Scanner un produit</div>
+                    <div class="endpoint-url">GET /api/scan/{barcode}</div>
+                    <p>Obtient le score nutritionnel Yumi pour un produit</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-title">Gestion du profil</div>
+                    <div class="endpoint-url">GET/POST/PUT /api/profile</div>
+                    <p>Créer, récupérer ou modifier le profil utilisateur</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-title">Panier d'achat</div>
+                    <div class="endpoint-url">GET/POST /api/cart</div>
+                    <p>Gérer le panier d'achat (ajouter, supprimer, modifier)</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-title">Commande</div>
+                    <div class="endpoint-url">POST /api/cart/checkout</div>
+                    <p>Simuler une commande (intégration drive à venir)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Yumi API Server - Développé avec ❤️ et IA</p>
+        <p>Port: 8080 | Mode: Développement</p>
+    </div>
+
+    <script>
+        async function scanProduct() {
+            const barcode = document.getElementById('barcodeInput').value;
+            const resultDiv = document.getElementById('scanResult');
+
+            if (!barcode) {
+                alert('Veuillez entrer un code-barres');
+                return;
+            }
+
+            try {
+                resultDiv.style.display = 'block';
+                resultDiv.textContent = 'Scanning en cours...';
+
+                const response = await fetch(`/api/scan/${barcode}`);
+                const data = await response.json();
+
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+
+                if (data.success) {
+                    resultDiv.style.background = '#d4edda';
+                    resultDiv.style.color = '#155724';
+                } else {
+                    resultDiv.style.background = '#f8d7da';
+                    resultDiv.style.color = '#721c24';
+                }
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = '#f8d7da';
+                resultDiv.style.color = '#721c24';
+                resultDiv.textContent = `Erreur: ${error.message}`;
+            }
+        }
+
+        // Permettre l'envoi avec Enter
+        document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                scanProduct();
+            }
+        });
+    </script>
+</body>
+</html>
+
