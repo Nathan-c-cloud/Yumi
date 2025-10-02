@@ -156,35 +156,90 @@ class UserProfile:
 
         return list(set(detected_allergens))  # Enlever les doublons
 
-    def check_dietary_restrictions(self, product_categories: List[str]) -> List[DietaryRestriction]:
+    def check_dietary_restrictions(self, product_categories: List[str], product_labels: List[str] = None, product_name: str = "") -> List[DietaryRestriction]:
         """Vérifie les restrictions alimentaires violées par un produit"""
         violations = []
 
+        # Combiner toutes les sources d'information
+        all_text_sources = product_categories + (product_labels or []) + [product_name]
+        combined_text = ' '.join(all_text_sources).lower()
+
         for restriction in self.dietary_restrictions:
             if restriction == DietaryRestriction.VEGETARIAN:
-                if any(keyword in cat.lower() for cat in product_categories
-                      for keyword in ['meat', 'fish', 'seafood', 'poultry']):
+                # Détection plus précise pour les produits carnés
+                meat_keywords = ['meat', 'fish', 'seafood', 'poultry', 'chicken', 'beef', 'pork', 'lamb',
+                               'turkey', 'duck', 'salmon', 'tuna', 'ham', 'bacon', 'sausage', 'charcuterie',
+                               'jambon', 'saucisse', 'chorizo', 'salami', 'viande']
+                if any(keyword in combined_text for keyword in meat_keywords):
                     violations.append(restriction)
 
             elif restriction == DietaryRestriction.VEGAN:
-                if any(keyword in cat.lower() for cat in product_categories
-                      for keyword in ['meat', 'fish', 'seafood', 'poultry', 'dairy', 'eggs', 'honey']):
+                # Détection étendue pour tous les produits d'origine animale
+                animal_keywords = ['meat', 'fish', 'seafood', 'poultry', 'chicken', 'beef', 'pork', 'lamb',
+                                 'turkey', 'duck', 'salmon', 'tuna', 'ham', 'bacon', 'sausage', 'charcuterie',
+                                 'jambon', 'saucisse', 'chorizo', 'salami', 'viande',
+                                 'dairy', 'milk', 'cheese', 'yogurt', 'butter', 'cream', 'eggs', 'honey',
+                                 'lait', 'fromage', 'yaourt', 'beurre', 'crème', 'œuf', 'miel']
+                if any(keyword in combined_text for keyword in animal_keywords):
                     violations.append(restriction)
 
             elif restriction == DietaryRestriction.GLUTEN_FREE:
-                if any(keyword in cat.lower() for cat in product_categories
-                      for keyword in ['wheat', 'gluten', 'bread', 'pasta', 'cereal']):
+                # Détection étendue pour le gluten
+                gluten_keywords = ['wheat', 'gluten', 'bread', 'pasta', 'cereal', 'flour', 'barley', 'rye',
+                                 'blé', 'farine', 'pain', 'pâtes', 'céréales', 'orge', 'seigle', 'avoine']
+                if any(keyword in combined_text for keyword in gluten_keywords):
                     violations.append(restriction)
 
             elif restriction == DietaryRestriction.LACTOSE_FREE:
-                if any(keyword in cat.lower() for cat in product_categories
-                      for keyword in ['dairy', 'milk', 'cheese', 'yogurt']):
+                # Détection étendue pour le lactose
+                lactose_keywords = ['dairy', 'milk', 'cheese', 'yogurt', 'butter', 'cream', 'lactose',
+                                  'lait', 'fromage', 'yaourt', 'beurre', 'crème', 'lactose']
+                if any(keyword in combined_text for keyword in lactose_keywords):
                     violations.append(restriction)
 
             elif restriction == DietaryRestriction.HALAL:
-                if any(keyword in cat.lower() for cat in product_categories
-                      for keyword in ['pork', 'alcohol', 'wine', 'beer']):
-                    violations.append(restriction)
+                # Détection intelligente AMÉLIORÉE pour les produits halal
+
+                # 1. Vérifier d'abord si c'est explicitement certifié halal
+                halal_indicators = [
+                    'halal', 'hallal', 'halaal', 'certified-halal', 'certifié-halal',
+                    'halal-certified', 'muslim-friendly', 'islamique'
+                ]
+                is_explicitly_halal = any(indicator in combined_text for indicator in halal_indicators)
+
+                if not is_explicitly_halal:
+                    # 2. Détection spécifique des violations halal
+                    pork_keywords = [
+                        'pork', 'pig', 'ham', 'bacon', 'prosciutto',
+                        'jambon', 'porc', 'cochon', 'lard', 'rillettes', 'boudin',
+                        'pancetta'
+                    ]
+
+                    alcohol_keywords = [
+                        'alcohol', 'wine', 'beer', 'spirits', 'liqueur', 'vodka', 'whisky', 'rum', 'gin',
+                        'alcool', 'vin', 'bière', 'spiritueux', 'cognac', 'champagne'
+                    ]
+
+                    # Charcuteries spécifiquement de porc
+                    pork_charcuterie_keywords = [
+                        'chorizo', 'salami', 'saucisson', 'mortadelle'
+                    ]
+
+                    # Gélatine de porc
+                    gelatin_keywords = ['gelatin', 'gélatine']
+
+                    # Vérifier les violations
+                    violating_keywords = pork_keywords + alcohol_keywords + pork_charcuterie_keywords + gelatin_keywords
+
+                    if any(keyword in combined_text for keyword in violating_keywords):
+                        violations.append(restriction)
+
+                    # Cas spécial pour "charcuterie" générique - seulement si pas halal et contient des indices de porc
+                    elif 'charcuterie' in combined_text:
+                        # Rechercher des indices de porc dans le contexte
+                        pork_context_keywords = ['porc', 'pork', 'cochon', 'pig']
+                        if any(keyword in combined_text for keyword in pork_context_keywords):
+                            violations.append(restriction)
 
         return violations
 

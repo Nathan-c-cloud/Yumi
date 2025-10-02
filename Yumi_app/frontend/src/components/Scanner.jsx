@@ -4,7 +4,8 @@ import { ArrowLeft, Scan as ScanIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { QrReader } from 'react-qr-reader';
+import BarcodeScanner from './BarcodeScanner';
+import ScoreExplanation from './ScoreExplanation';
 import yumiLogo from '../assets/yumi_logo.png';
 
 const Scanner = ({ userId }) => {
@@ -13,15 +14,20 @@ const Scanner = ({ userId }) => {
   const [error, setError] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
+  const [cameraPermission, setCameraPermission] = useState(null); // null, 'granted', 'denied'
 
   useEffect(() => {
     // Charger le profil utilisateur au montage du composant
     const fetchUserProfile = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:5002/api/profile" );
+        const response = await fetch("http://127.0.0.1:5002/api/profile", {
+          headers: {
+            'X-User-ID': userId
+          }
+        });
         const data = await response.json();
-        if (response.ok) {
-          setUserProfile(data);
+        if (response.ok && data.success) {
+          setUserProfile(data.profile);
         } else {
           console.error('Failed to fetch user profile:', data.error);
         }
@@ -30,7 +36,43 @@ const Scanner = ({ userId }) => {
       }
     };
     fetchUserProfile();
-  }, []);
+  }, [userId]);
+
+  // Fonction pour vérifier les permissions de caméra
+  const checkCameraPermission = async () => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraPermission('not-supported');
+        setError('Votre navigateur ne supporte pas l\'accès à la caméra.');
+        return false;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment' // Caméra arrière pour scanner
+        }
+      });
+
+      // Si on arrive ici, la permission est accordée
+      stream.getTracks().forEach(track => track.stop()); // Arrêter le stream de test
+      setCameraPermission('granted');
+      setError(null);
+      return true;
+    } catch (err) {
+      console.error('Erreur permission caméra:', err);
+      if (err.name === 'NotAllowedError') {
+        setCameraPermission('denied');
+        setError('Permission d\'accès à la caméra refusée. Veuillez autoriser l\'accès dans les paramètres de votre navigateur.');
+      } else if (err.name === 'NotFoundError') {
+        setCameraPermission('no-camera');
+        setError('Aucune caméra trouvée sur cet appareil.');
+      } else {
+        setCameraPermission('error');
+        setError('Erreur d\'accès à la caméra: ' + err.message);
+      }
+      return false;
+    }
+  };
 
   const handleScan = async () => {
     setError(null);
@@ -40,9 +82,9 @@ const Scanner = ({ userId }) => {
       return;
     }
 
+    // Afficher un avertissement si pas de profil mais permettre quand même le scan
     if (!userProfile) {
-      setError('Profil utilisateur non chargé. Veuillez configurer votre profil.');
-      return;
+      console.warn('Aucun profil utilisateur trouvé - utilisation du profil par défaut');
     }
 
     try {
@@ -50,10 +92,10 @@ const Scanner = ({ userId }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-User-ID': userId // Envoyer l'ID utilisateur dans l'en-tête
         },
         body: JSON.stringify({
-          barcode: barcode,
-          user_profile: userProfile, // Envoyer le profil utilisateur
+          barcode: barcode
         }),
       });
       const data = await response.json();
@@ -82,6 +124,19 @@ const Scanner = ({ userId }) => {
     setError('Erreur d\'accès à la caméra. Assurez-vous d\'avoir donné les permissions.');
   };
 
+  // Fonction pour démarrer le scan avec vérification des permissions
+  const startCameraScanning = async () => {
+    if (cameraPermission === 'granted') {
+      setIsScanning(true);
+      return;
+    }
+
+    const hasPermission = await checkCameraPermission();
+    if (hasPermission) {
+      setIsScanning(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-blue-100 p-4 flex flex-col items-center">
       <div className="w-full max-w-md bg-white rounded-lg shadow-xl p-6 mt-8">
@@ -108,7 +163,7 @@ const Scanner = ({ userId }) => {
                 placeholder="Entrez le code-barres"
                 className="flex-grow"
               />
-              <Button onClick={() => setIsScanning(!isScanning)} variant="outline" size="icon">
+              <Button onClick={startCameraScanning} variant="outline" size="icon">
                 <ScanIcon className="h-5 w-5" />
               </Button>
             </div>
@@ -116,24 +171,21 @@ const Scanner = ({ userId }) => {
 
           {isScanning && (
             <div className="mt-4 p-2 border rounded-md bg-gray-50">
-              <p className="text-center text-sm text-gray-600 mb-2">Scannez un code-barres avec votre caméra</p>
-              <QrReader
-                delay={300}
+              <p className="text-center text-sm text-gray-600 mb-2">
+                Caméra activée - Pointez vers un code-barres
+              </p>
+              <BarcodeScanner
+                onScan={handleCameraScan}
                 onError={handleError}
-                onResult={(result, error) => {
-                  if (!!result) {
-                    handleCameraScan(result?.text);
-                  }
-
-                  if (!!error) {
-                    handleError(error);
-                  }
-                }}
-                style={{ width: '100%' }}
-                constraints={{
-                  facingMode: 'environment'
-                }}
+                isActive={isScanning}
               />
+              <Button
+                onClick={() => setIsScanning(false)}
+                variant="outline"
+                className="w-full mt-2"
+              >
+                Arrêter le scan
+              </Button>
             </div>
           )}
 
@@ -157,13 +209,14 @@ const Scanner = ({ userId }) => {
             <p className="text-gray-700">Marque: <span className="font-medium">{scanResult.brands}</span></p>
             <p className="text-gray-700">Score Yumi: <span className="font-medium">{scanResult.yumi_score}/100</span></p>
             {scanResult.nutriscore_grade && <p className="text-gray-700">Nutriscore: <span className="font-medium">{scanResult.nutriscore_grade.toUpperCase()}</span></p>}
-            {scanResult.warnings && scanResult.warnings.length > 0 && (
-              <div className="mt-2">
-                {scanResult.warnings.map((warning, index) => (
-                  <p key={index} className="text-red-600 text-sm">{warning}</p>
-                ))}
-              </div>
-            )}
+
+            {/* Nouveau composant d'explication des scores */}
+            <ScoreExplanation
+              yumiScore={scanResult.yumi_score}
+              color={scanResult.color}
+              warnings={scanResult.warnings || []}
+            />
+
             {scanResult.recommendations && scanResult.recommendations.length > 0 && (
               <div className="mt-4">
                 <h4 className="font-semibold text-gray-800">Recommandations:</h4>
