@@ -325,7 +325,11 @@ class YumiPredictor:
             return adjusted_score, warnings, blocked
 
         # 2. VÉRIFICATION DES RESTRICTIONS ALIMENTAIRES (BLOQUANT)
-        dietary_violations = user_profile.check_dietary_restrictions(categories)
+        dietary_violations = user_profile.check_dietary_restrictions(
+            categories,
+            product_data.get('labels_tags', []),
+            product_data.get('product_name', '')
+        )
         if dietary_violations:
             violation_names = [v.value.replace('_', ' ').title() for v in dietary_violations]
             warnings.append(f"🚫 RESTRICTION ALIMENTAIRE: Ne convient pas au régime {', '.join(violation_names)}")

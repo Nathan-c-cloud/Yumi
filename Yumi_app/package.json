@@ -1,5 +1,6 @@
 {
 	"dependencies": {
+		"expo": "^54.0.12",
 		"lucide-react": "^0.544.0",
 		"react-router-dom": "^7.9.3"
 	},

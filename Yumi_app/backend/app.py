@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from predict_score import YumiPredictor
-from user_profile import UserProfile, AgeGroup, ActivityLevel, DietaryRestriction, HealthGoal
+from user_profile import UserProfile, AgeGroup, ActivityLevel, DietaryRestriction, HealthGoal, create_adult_profile
 
 app = Flask(__name__)
 
@@ -27,8 +27,10 @@ def scan_product():
     # Retrieve user profile from storage
     current_user_profile = user_profiles.get(user_id)
 
+    # Si pas de profil utilisateur, créer un profil par défaut temporaire
     if not current_user_profile:
-        return jsonify({"success": False, "error": "User profile not found. Please create a profile first."}), 404
+        current_user_profile = create_adult_profile("Utilisateur par défaut")
+        print(f"⚠️ Aucun profil trouvé pour {user_id}, utilisation d'un profil par défaut")
 
     try:
         result = predictor.predict_from_barcode_personalized(barcode, current_user_profile)
