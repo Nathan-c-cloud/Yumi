@@ -18,7 +18,7 @@ const Scanner = ({ userId }) => {
     // Charger le profil utilisateur au montage du composant
     const fetchUserProfile = async () => {
       try {
-        const response = await fetch('http://localhost:5002/api/profile');
+        const response = await fetch("http://127.0.0.1:5002/api/profile" );
         const data = await response.json();
         if (response.ok) {
           setUserProfile(data);
@@ -46,7 +46,7 @@ const Scanner = ({ userId }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:5002/api/scan', {
+      const response = await fetch(`http://127.0.0.1:5002/api/scan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

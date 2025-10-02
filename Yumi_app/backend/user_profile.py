@@ -188,6 +188,44 @@ class UserProfile:
 
         return violations
 
+    def to_dict(self) -> dict:
+        """Convertit le profil en dictionnaire"""
+        return {
+            'name': self.name,
+            'age_group': self.age_group.value,
+            'activity_level': self.activity_level.value,
+            'dietary_restrictions': [dr.value for dr in self.dietary_restrictions],
+            'allergies': self.allergies,
+            'health_goals': [hg.value for hg in self.health_goals],
+            'alcohol_allowed': self.alcohol_allowed,
+            'max_sugar_tolerance': self.max_sugar_tolerance,
+            'max_sodium_tolerance': self.max_sodium_tolerance,
+            'min_fiber_preference': self.min_fiber_preference,
+            'min_protein_preference': self.min_protein_preference,
+            'sugar_sensitivity': self.sugar_sensitivity,
+            'sodium_sensitivity': self.sodium_sensitivity,
+            'calorie_sensitivity': self.calorie_sensitivity
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'UserProfile':
+        """Crée un profil à partir d'un dictionnaire"""
+        return cls(
+            name=data['name'],
+            age_group=AgeGroup(data['age_group'].lower()),
+            activity_level=ActivityLevel(data['activity_level'].lower()),
+            dietary_restrictions=[DietaryRestriction(dr.lower()) for dr in data.get('dietary_restrictions', [])],
+            allergies=data.get('allergies', []),
+            health_goals=[HealthGoal(hg.lower()) for hg in data.get('health_goals', [])],
+            alcohol_allowed=data.get('alcohol_allowed', False),
+            max_sugar_tolerance=data.get('max_sugar_tolerance'),
+            max_sodium_tolerance=data.get('max_sodium_tolerance'),
+            min_fiber_preference=data.get('min_fiber_preference'),
+            min_protein_preference=data.get('min_protein_preference'),
+            sugar_sensitivity=data.get('sugar_sensitivity', 0.0),
+            sodium_sensitivity=data.get('sodium_sensitivity', 0.0),
+            calorie_sensitivity=data.get('calorie_sensitivity', 0.0)
+        )
 # Profils prédéfinis pour différents types d'utilisateurs
 
 def create_child_profile(name: str, allergies: List[str] = None) -> UserProfile:

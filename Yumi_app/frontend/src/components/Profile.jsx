@@ -66,7 +66,7 @@ function Profile({ userId }) {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('http://localhost:5002/api/profile', {
+      const response = await fetch('http://127.0.0.1:5002/api/profile', {
         headers: {
           'X-User-ID': userId
         }
@@ -74,9 +74,10 @@ function Profile({ userId }) {
 
       if (response.ok) {
         const data = await response.json()
-        if (data.success) {
+        if (data.success && data.profile) {
           setProfile(data.profile)
         }
+        // If profile is null, keep the default values already set in useState
       }
     } catch (err) {
       console.error('Erreur lors du chargement du profil')
@@ -91,7 +92,7 @@ function Profile({ userId }) {
     setMessage('')
 
     try {
-      const response = await fetch('http://localhost:5002/api/profile', {
+      const response = await fetch('http://127.0.0.1:5002/api/profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
