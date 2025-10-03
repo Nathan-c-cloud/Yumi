@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button.jsx'
-import { Scan, ShoppingCart, User } from 'lucide-react'
+import { Scan, ShoppingCart, User, History } from 'lucide-react'
 import yumiLogo from '../assets/yumi_logo.png'
 
 function Home({ userId }) {
@@ -17,6 +17,12 @@ function Home({ userId }) {
               <Button variant="ghost" className="flex items-center gap-2">
                 <Scan className="h-5 w-5" />
                 Scanner
+              </Button>
+            </Link>
+            <Link to="/history">
+              <Button variant="ghost" className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Historique
               </Button>
             </Link>
             <Link to="/cart">
@@ -60,7 +66,7 @@ function Home({ userId }) {
           </div>
 
           {/* Features */}
-          <div className="grid md:grid-cols-3 gap-8 mt-16">
+          <div className="grid md:grid-cols-4 gap-8 mt-16">
             <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
               <div className="bg-gradient-to-br from-orange-400 to-orange-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Scan className="h-8 w-8 text-white" />
@@ -68,6 +74,16 @@ function Home({ userId }) {
               <h3 className="text-xl font-semibold mb-2">Scan Intelligent</h3>
               <p className="text-gray-600">
                 Scannez les codes-barres pour obtenir un score personnalisé basé sur vos préférences et restrictions alimentaires.
+              </p>
+            </div>
+
+            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+              <div className="bg-gradient-to-br from-purple-400 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <History className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Historique</h3>
+              <p className="text-gray-600">
+                Consultez l'historique de tous vos scans précédents et suivez vos choix alimentaires dans le temps.
               </p>
             </div>
 

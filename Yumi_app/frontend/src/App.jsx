@@ -6,6 +6,7 @@ import Cart from './components/Cart'
 import Profile from './components/Profile'
 import Home from './components/Home'
 import Recommendations from './components/Recommendations'
+import History from './components/History'
 
 function App() {
   const [userId] = useState('default') // En production, gérer l'authentification
@@ -19,6 +20,7 @@ function App() {
           <Route path="/cart" element={<Cart userId={userId} />} />
           <Route path="/profile" element={<Profile userId={userId} />} />
           <Route path="/recommendations" element={<Recommendations userId={userId} />} />
+          <Route path="/history" element={<History userId={userId} />} />
         </Routes>
       </div>
     </Router>
