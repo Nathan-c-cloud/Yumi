@@ -66,44 +66,44 @@ function Home({ userId }) {
           </div>
 
           {/* Features */}
-          <div className="grid md:grid-cols-4 gap-8 mt-16">
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="bg-gradient-to-br from-orange-400 to-orange-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Scan className="h-8 w-8 text-white" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mt-16">
+            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow min-h-[280px]">
+              <div className="bg-gradient-to-br from-orange-400 to-orange-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Scan className="h-10 w-10 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Scan Intelligent</h3>
-              <p className="text-gray-600">
+              <h3 className="text-2xl font-semibold mb-4">Scan Intelligent</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
                 Scannez les codes-barres pour obtenir un score personnalisé basé sur vos préférences et restrictions alimentaires.
               </p>
             </div>
 
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="bg-gradient-to-br from-purple-400 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <History className="h-8 w-8 text-white" />
+            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow min-h-[280px]">
+              <div className="bg-gradient-to-br from-purple-400 to-purple-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <History className="h-10 w-10 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Historique</h3>
-              <p className="text-gray-600">
+              <h3 className="text-2xl font-semibold mb-4">Historique</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
                 Consultez l'historique de tous vos scans précédents et suivez vos choix alimentaires dans le temps.
               </p>
             </div>
 
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="bg-gradient-to-br from-pink-400 to-pink-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <User className="h-8 w-8 text-white" />
+            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow min-h-[280px]">
+              <div className="bg-gradient-to-br from-pink-400 to-pink-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <User className="h-10 w-10 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Profil Personnalisé</h3>
-              <p className="text-gray-600">
+              <h3 className="text-2xl font-semibold mb-4">Profil Personnalisé</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
                 Configurez votre profil avec vos objectifs de santé, restrictions alimentaires et allergies pour un scoring adapté.
               </p>
             </div>
 
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="bg-gradient-to-br from-blue-400 to-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShoppingCart className="h-8 w-8 text-white" />
+            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow min-h-[280px]">
+              <div className="bg-gradient-to-br from-blue-400 to-blue-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ShoppingCart className="h-10 w-10 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Panier Intelligent</h3>
-              <p className="text-gray-600">
-                Ajoutez vos produits au panier et recevez des recommandations pour améliorer vos choix nutritionnels.
+              <h3 className="text-2xl font-semibold mb-4">Panier Intelligent</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Votre panier se remplit automatiquement avec les produits recommandés selon vos objectifs nutritionnels et restrictions alimentaires.
               </p>
             </div>
           </div>

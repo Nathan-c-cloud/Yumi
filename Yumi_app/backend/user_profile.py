@@ -53,6 +53,9 @@ class UserProfile:
     # Objectifs de santé
     health_goals: List[HealthGoal]
 
+    # Budget alimentaire (en euros par semaine)
+    weekly_budget: Optional[float] = 50.0  # Budget par défaut de 50€/semaine
+
     # Préférences personnelles
     alcohol_allowed: bool = False
     max_sugar_tolerance: Optional[float] = None  # g/100g
@@ -259,7 +262,8 @@ class UserProfile:
             'min_protein_preference': self.min_protein_preference,
             'sugar_sensitivity': self.sugar_sensitivity,
             'sodium_sensitivity': self.sodium_sensitivity,
-            'calorie_sensitivity': self.calorie_sensitivity
+            'calorie_sensitivity': self.calorie_sensitivity,
+            'weekly_budget': self.weekly_budget
         }
 
     @classmethod
@@ -279,7 +283,8 @@ class UserProfile:
             min_protein_preference=data.get('min_protein_preference'),
             sugar_sensitivity=data.get('sugar_sensitivity', 0.0),
             sodium_sensitivity=data.get('sodium_sensitivity', 0.0),
-            calorie_sensitivity=data.get('calorie_sensitivity', 0.0)
+            calorie_sensitivity=data.get('calorie_sensitivity', 0.0),
+            weekly_budget=data.get('weekly_budget', 50.0)
         )
 # Profils prédéfinis pour différents types d'utilisateurs
 

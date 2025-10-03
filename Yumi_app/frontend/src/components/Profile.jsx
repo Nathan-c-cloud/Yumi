@@ -18,6 +18,7 @@ function Profile({ userId }) {
   const [alcoholAllowed, setAlcoholAllowed] = useState(false);
   const [maxSugarTolerance, setMaxSugarTolerance] = useState('');
   const [maxSodiumTolerance, setMaxSodiumTolerance] = useState('');
+  const [weeklyBudget, setWeeklyBudget] = useState(50); // Nouveau champ budget
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -75,13 +76,14 @@ function Profile({ userId }) {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.profile) {
-          const { name, age_group, activity_level, dietary_restrictions, health_goals, alcohol_allowed } = data.profile;
+          const { name, age_group, activity_level, dietary_restrictions, health_goals, alcohol_allowed, weekly_budget } = data.profile;
           setName(name);
           setAgeGroup(age_group);
           setActivityLevel(activity_level);
           setDietaryRestrictions(dietary_restrictions);
           setHealthGoals(health_goals);
           setAlcoholAllowed(alcohol_allowed);
+          setWeeklyBudget(weekly_budget); // Charger le budget hebdomadaire
         }
       } else {
         setError('Erreur lors du chargement du profil');
@@ -115,7 +117,9 @@ function Profile({ userId }) {
           age_group: ageGroup,
           activity_level: activityLevel,
           dietary_restrictions: dietaryRestrictions,
-          health_goals: healthGoals
+          health_goals: healthGoals,
+          alcohol_allowed: alcoholAllowed,
+          weekly_budget: weeklyBudget // Envoyer le budget hebdomadaire
         }),
       });
 
@@ -234,6 +238,19 @@ function Profile({ userId }) {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="weekly_budget" className="text-lg font-medium">Budget hebdomadaire (€)</Label>
+                  <Input
+                    id="weekly_budget"
+                    type="number"
+                    value={weeklyBudget}
+                    onChange={(e) => setWeeklyBudget(e.target.value)}
+                    placeholder="Votre budget hebdomadaire"
+                    className="mt-2 text-lg p-3"
+                    min="0"
+                  />
                 </div>
 
                 <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">

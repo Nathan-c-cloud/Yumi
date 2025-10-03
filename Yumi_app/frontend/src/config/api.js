@@ -6,7 +6,9 @@ export const API_ENDPOINTS = {
   HISTORY: `${API_BASE_URL}/history`,
   PROFILE: `${API_BASE_URL}/profile`,
   CART: `${API_BASE_URL}/cart`,
-  CHECKOUT: `${API_BASE_URL}/checkout`
+  CHECKOUT: `${API_BASE_URL}/checkout`,
+  SAVED_RECOMMENDATIONS: `${API_BASE_URL}/saved-recommendations`,
+  BASE_URL: API_BASE_URL
 };
 
 export default API_BASE_URL;
