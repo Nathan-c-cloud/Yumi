@@ -127,25 +127,52 @@ def manage_cart():
 def checkout():
     return jsonify({"success": True, "message": "Commande passée avec succès (simulé)"})
 
-@app.route("/api/history", methods=["GET"])
-def get_scan_history():
-    """Récupérer l'historique des scans pour un utilisateur"""
+@app.route("/api/history", methods=["GET", "DELETE", "OPTIONS"])
+def manage_scan_history():
+    """Gérer l'historique des scans pour un utilisateur"""
+    if request.method == "OPTIONS":
+        # Gérer la requête preflight CORS
+        response = jsonify()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,X-User-ID')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,DELETE,OPTIONS')
+        return response
+
     user_id = request.headers.get("X-User-ID", "default")
 
-    history = scan_history.get(user_id, [])
-    # Trier par timestamp décroissant (plus récent en premier)
-    history_sorted = sorted(history, key=lambda x: x["timestamp"], reverse=True)
+    if request.method == "GET":
+        # Récupérer l'historique des scans
+        history = scan_history.get(user_id, [])
+        # Trier par timestamp décroissant (plus récent en premier)
+        history_sorted = sorted(history, key=lambda x: x["timestamp"], reverse=True)
 
-    return jsonify({
-        "success": True,
-        "history": history_sorted
-    }), 200
+        return jsonify({
+            "success": True,
+            "history": history_sorted
+        }), 200
 
-@app.route("/api/history/<int:item_index>", methods=["DELETE"])
-def delete_scan_history_item():
+    elif request.method == "DELETE":
+        # Effacer tout l'historique des scans
+        if user_id in scan_history:
+            scan_history[user_id] = []
+
+        return jsonify({
+            "success": True,
+            "message": "Historique effacé avec succès"
+        }), 200
+
+@app.route("/api/history/<int:item_index>", methods=["DELETE", "OPTIONS"])
+def delete_scan_history_item(item_index):
     """Supprimer un élément spécifique de l'historique des scans pour un utilisateur"""
+    if request.method == "OPTIONS":
+        # Gérer la requête preflight CORS
+        response = jsonify()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,X-User-ID')
+        response.headers.add('Access-Control-Allow-Methods', 'DELETE,OPTIONS')
+        return response
+
     user_id = request.headers.get("X-User-ID", "default")
-    item_index = int(request.view_args.get("item_index"))
 
     if user_id not in scan_history:
         return jsonify({
@@ -169,20 +196,10 @@ def delete_scan_history_item():
         "message": f"Élément '{deleted_item.get('product_name', 'Produit')}' supprimé avec succès"
     }), 200
 
-@app.route("/api/history", methods=["DELETE"])
-def clear_scan_history():
-    """Effacer l'historique des scans pour un utilisateur"""
-    user_id = request.headers.get("X-User-ID", "default")
-
-    if user_id in scan_history:
-        scan_history[user_id] = []
-
-    return jsonify({
-        "success": True,
-        "message": "Historique effacé avec succès"
-    }), 200
-
+# ...existing code...
 print(f"Backend Flask démarré sur http://127.0.0.1:5002 avec CORS activé pour toutes les origines." )
+
+
 
 
 if __name__ == "__main__":
