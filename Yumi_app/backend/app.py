@@ -252,6 +252,90 @@ def auto_fill_cart_from_recommendations(user_id):
 def checkout():
     return jsonify({"success": True, "message": "Commande passée avec succès (simulé)"})
 
+def build_intelligent_cart(user_id):
+    """Construire automatiquement un panier intelligent basé sur le profil et les recommandations"""
+    user_profile = user_profiles.get(user_id)
+    user_recommendations = saved_recommendations.get(user_id, [])
+
+    if not user_profile:
+        print(f"❌ Pas de profil pour {user_id}, impossible de créer un panier intelligent")
+        return []
+
+    print(f"🧠 Construction du panier intelligent pour {user_id}")
+    print(f"👤 Profil: {user_profile.health_goals}, Restrictions: {user_profile.dietary_restrictions}")
+    print(f"💰 Budget hebdomadaire: {user_profile.weekly_budget}€")
+    print(f"💡 {len(user_recommendations)} recommandations disponibles")
+
+    # Filtrer et scorer les recommandations selon le profil
+    suitable_products = []
+
+    for rec in user_recommendations:
+        score = rec.get("yumi_score", 0)
+        product_name = rec.get("product_name", "").lower()
+        price = rec.get("price", 0.0)
+
+        # Score de base
+        suitability_score = score
+
+        # Bonus selon les objectifs de santé
+        for goal in user_profile.health_goals:
+            if goal == HealthGoal.LOSE_WEIGHT:
+                if "light" in product_name or "0%" in product_name or "sans sucre" in product_name:
+                    suitability_score += 15
+                elif "bio" in product_name or "naturel" in product_name:
+                    suitability_score += 10
+            elif goal == HealthGoal.BUILD_MUSCLE:
+                if "protéin" in product_name or "fromage" in product_name:
+                    suitability_score += 15
+            elif goal == HealthGoal.IMPROVE_HEALTH:
+                if "omega" in product_name or "huile d'olive" in product_name:
+                    suitability_score += 15
+
+        # Malus pour les restrictions alimentaires (vérification basique)
+        penalty = 0
+        for restriction in user_profile.dietary_restrictions:
+            if restriction == DietaryRestriction.GLUTEN_FREE and "gluten" in product_name:
+                penalty -= 50
+            elif restriction == DietaryRestriction.LACTOSE_FREE and ("lait" in product_name or "fromage" in product_name):
+                penalty -= 50
+            elif restriction == DietaryRestriction.VEGETARIAN and ("viande" in product_name or "porc" in product_name):
+                penalty -= 50
+
+        final_score = max(0, suitability_score + penalty)
+
+        if final_score >= 60:  # Seuil minimum pour être inclus
+            suitable_products.append({
+                **rec,
+                "suitability_score": final_score,
+                "auto_selected": True,
+                "selection_reason": f"Score adapté à votre profil: {final_score}/100",
+                "price": price
+            })
+
+    # Trier par rapport qualité/prix (score d'adéquation / prix)
+    def quality_price_ratio(product):
+        price = product.get("price", 1.0)
+        suitability_score = product.get("suitability_score", 0)
+        return suitability_score / price if price > 0 else 0
+
+    suitable_products.sort(key=quality_price_ratio, reverse=True)
+
+    # Filtrer selon le budget si défini
+    if user_profile.weekly_budget and user_profile.weekly_budget > 0:
+        selected_products = ProductPriceGenerator.filter_products_by_budget(
+            suitable_products,
+            user_profile.weekly_budget,
+            target_percentage=0.8  # Utiliser 80% du budget
+        )
+        print(f"💰 Filtrage selon budget: {len(selected_products)} produits dans le budget")
+    else:
+        # Pas de budget défini, prendre les 12 meilleurs
+        selected_products = suitable_products[:12]
+
+    print(f"✅ {len(selected_products)} produits sélectionnés automatiquement")
+
+    return selected_products
+
 @app.route("/api/history", methods=["GET", "DELETE", "OPTIONS"])
 def manage_scan_history():
     """Gérer l'historique des scans pour un utilisateur"""
@@ -321,90 +405,6 @@ def delete_scan_history_item(item_index):
         "message": f"Élément '{deleted_item.get('product_name', 'Produit')}' supprimé avec succès"
     }), 200
 
-def build_intelligent_cart(user_id):
-    """Construire automatiquement un panier intelligent basé sur le profil et les recommandations"""
-    user_profile = user_profiles.get(user_id)
-    user_recommendations = saved_recommendations.get(user_id, [])
-
-    if not user_profile:
-        print(f"❌ Pas de profil pour {user_id}, impossible de créer un panier intelligent")
-        return []
-
-    print(f"🧠 Construction du panier intelligent pour {user_id}")
-    print(f"👤 Profil: {user_profile.health_goals}, Restrictions: {user_profile.dietary_restrictions}")
-    print(f"💰 Budget hebdomadaire: {user_profile.weekly_budget}€")
-    print(f"💡 {len(user_recommendations)} recommandations disponibles")
-
-    # Filtrer et scorer les recommandations selon le profil
-    suitable_products = []
-
-    for rec in user_recommendations:
-        score = rec.get("yumi_score", 0)
-        product_name = rec.get("product_name", "").lower()
-        price = rec.get("price", 0.0)
-
-        # Score de base
-        suitability_score = score
-
-        # Bonus selon les objectifs de santé
-        for goal in user_profile.health_goals:
-            if goal == HealthGoal.WEIGHT_LOSS:
-                if "light" in product_name or "0%" in product_name or "sans sucre" in product_name:
-                    suitability_score += 15
-                elif "bio" in product_name or "naturel" in product_name:
-                    suitability_score += 10
-            elif goal == HealthGoal.MUSCLE_GAIN:
-                if "protéin" in product_name or "fromage" in product_name:
-                    suitability_score += 15
-            elif goal == HealthGoal.HEART_HEALTH:
-                if "omega" in product_name or "huile d'olive" in product_name:
-                    suitability_score += 15
-
-        # Malus pour les restrictions alimentaires (vérification basique)
-        penalty = 0
-        for restriction in user_profile.dietary_restrictions:
-            if restriction == DietaryRestriction.GLUTEN_FREE and "gluten" in product_name:
-                penalty -= 50
-            elif restriction == DietaryRestriction.DAIRY_FREE and ("lait" in product_name or "fromage" in product_name):
-                penalty -= 50
-            elif restriction == DietaryRestriction.VEGETARIAN and ("viande" in product_name or "porc" in product_name):
-                penalty -= 50
-
-        final_score = max(0, suitability_score + penalty)
-
-        if final_score >= 60:  # Seuil minimum pour être inclus
-            suitable_products.append({
-                **rec,
-                "suitability_score": final_score,
-                "auto_selected": True,
-                "selection_reason": f"Score adapté à votre profil: {final_score}/100",
-                "price": price
-            })
-
-    # Trier par rapport qualité/prix (score d'adéquation / prix)
-    def quality_price_ratio(product):
-        price = product.get("price", 1.0)
-        suitability_score = product.get("suitability_score", 0)
-        return suitability_score / price if price > 0 else 0
-
-    suitable_products.sort(key=quality_price_ratio, reverse=True)
-
-    # Filtrer selon le budget si défini
-    if user_profile.weekly_budget and user_profile.weekly_budget > 0:
-        selected_products = ProductPriceGenerator.filter_products_by_budget(
-            suitable_products,
-            user_profile.weekly_budget,
-            target_percentage=0.8  # Utiliser 80% du budget
-        )
-        print(f"💰 Filtrage selon budget: {len(selected_products)} produits dans le budget")
-    else:
-        # Pas de budget défini, prendre les 12 meilleurs
-        selected_products = suitable_products[:12]
-
-    print(f"✅ {len(selected_products)} produits sélectionnés automatiquement")
-
-    return selected_products
-
 @app.route("/api/cart/intelligent", methods=["GET", "POST"])
 def manage_intelligent_cart():
     """Gérer le panier intelligent automatique"""
@@ -419,7 +419,7 @@ def manage_intelligent_cart():
             "success": True,
             "intelligent_cart": intelligent_cart,
             "message": f"Panier intelligent généré avec {len(intelligent_cart)} produits"
-        }), 200
+        }, 200)
 
     elif request.method == "POST":
         # Transférer le panier intelligent vers le panier classique
@@ -458,7 +458,7 @@ def manage_intelligent_cart():
         return jsonify({
             "success": True,
             "message": f"{added_count} produits ajoutés au panier depuis le panier intelligent"
-        }), 200
+        }, 200)
 
 @app.route("/api/cart", methods=["GET"])
 def get_cart():
